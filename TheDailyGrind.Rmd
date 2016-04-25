@@ -1,0 +1,49 @@
+---
+title: "The Daily Grind"
+author: "Sumit Gupta, Kavita Deodhar"
+date: "April 18, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library("twitteR")
+library(dplyr)
+api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
+api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
+access_token <- "915794173-7YxpWXQRfsjbmIWFuSJbr5EzPLJqQ9XSdOjkTmO0"
+access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
+setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
+
+Dunkin <- searchTwitter('Dunkin +coffee', n = 10000,since='2016-01-01', until='2016-04-19')
+
+Dunkin_df <- twListToDF(Dunkin)
+
+Starbucks <- searchTwitter('Starbucks +coffee', n = 10000,since='2016-01-01', until='2016-04-19')
+
+Starbucks_df <- twListToDF(Starbucks)
+
+Mccafe <- searchTwitter('McDonalds +coffee + Mccafe', n = 10000,since='2016-01-01', until='2016-04-19')
+
+Mccafe_df <- twListToDF(Mccafe)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
