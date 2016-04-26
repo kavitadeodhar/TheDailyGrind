@@ -24,6 +24,8 @@ library(DataCombine)
 library(wordcloud)
 library(RColorBrewer)
 library(readr)
+library(syuzhet)
+library(ggplot2)
 
 api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
 api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
@@ -39,18 +41,25 @@ Dunkin <- searchTwitter('Dunkin + coffee', n = 1000,since='2016-01-01', until='2
 
 Dunkin_df <- twListToDF(Dunkin)
 
-Dunkin_byte <- data.frame(text=iconv(Dunkin_df$text,"latin1","ASCII","byte")) 
+Dunkin_byte <- data.frame(text_emoji=iconv(Dunkin_df$text,"latin1","ASCII","byte")) 
+
+Dunkin_bind <- cbind(Dunkin_df,Dunkin_byte) %>% select (text_emoji,created,id)
 
 
-Dunkin_convert_emoji <- FindReplace(data = Dunkin_byte,Var = "text",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+Dunkin_convert_emoji <- FindReplace(data = Dunkin_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+colnames(Dunkin_convert_emoji)[1] <- "text"
 
 Starbucks <- searchTwitter('Starbucks + coffee', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Starbucks_df <- twListToDF(Starbucks)
 
-Starbucks_byte <- data.frame(text=iconv(Starbucks_df$text,"latin1","ASCII","byte")) 
+Starbucks_byte <- data.frame(text_emoji=iconv(Starbucks_df$text,"latin1","ASCII","byte")) 
 
-Starbucks_convert_emoji <- FindReplace(data = Starbucks_byte,Var = "text",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+Starbucks_bind <- cbind(Starbucks_df,Starbucks_byte) %>% select (text_emoji,created,id)
+
+Starbucks_convert_emoji <- FindReplace(data = Starbucks_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+colnames(Starbucks_convert_emoji)[1] <- "text"
+
 #rm(list=ls())
 ```
 
@@ -78,12 +87,27 @@ Dunkin_vector <- clean_tweets(Dunkin_convert_emoji)
 Starbucks_vector <- clean_tweets(Starbucks_convert_emoji)
 
 
-Dunkin_clean_df <- data.frame(text=unlist(sapply(Dunkin_vector, `[`,"content")),stringAsFactors=F)
+Dunkin_clean_df <- data.frame(text=unlist(sapply(Dunkin_vector, `[`,"content")),stringAsFactors=F) 
+Dunkin_clean_df <- cbind(Dunkin_clean_df$text,Dunkin_convert_emoji) %>% select (-text)  
+colnames(Dunkin_clean_df)[1] <- "text"
 
 Starbucks_clean_df <- data.frame(text=unlist(sapply(Starbucks_vector, `[`,"content")),stringAsFactors=F)
+Starbucks_clean_df <- cbind(Starbucks_clean_df$text,Starbucks_convert_emoji) %>% select (-text)  
+colnames(Starbucks_clean_df)[1] <- "text"
 
-
-
+######################
+mytweets <- get_nrc_sentiment(as.character(Dunkin_clean_df$text))
+head(mytweets)
+tweets <- cbind(Dunkin_clean_df, mytweets)
+sentimentTotals <- data.frame(colSums(tweets[,c(3:11)]))
+names(sentimentTotals) <- "count"
+sentimentTotals <- cbind("sentiment" = rownames(sentimentTotals), sentimentTotals)
+rownames(sentimentTotals) <- NULL
+ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +
+        geom_bar(aes(fill = sentiment), stat = "identity") +
+        theme(legend.position = "none") +
+        xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
+#########################
 #gc()
 #Dunkin wordcloud
 pal <- brewer.pal(9,"YlGnBu")
