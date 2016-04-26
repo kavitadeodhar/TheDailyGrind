@@ -16,27 +16,94 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
-library("twitteR")
+library(twitteR)
 library(dplyr)
+library(stringr)
+library(tm)
+library(wordcloud)
 api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
 api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
 access_token <- "915794173-7YxpWXQRfsjbmIWFuSJbr5EzPLJqQ9XSdOjkTmO0"
 access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 
-Dunkin <- searchTwitter('Dunkin +coffee', n = 10000,since='2016-01-01', until='2016-04-19')
+Dunkin <- searchTwitter('Dunkin', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Dunkin_df <- twListToDF(Dunkin)
 
-Starbucks <- searchTwitter('Starbucks +coffee', n = 10000,since='2016-01-01', until='2016-04-19')
+Starbucks <- searchTwitter('Starbucks', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Starbucks_df <- twListToDF(Starbucks)
 
-Mccafe <- searchTwitter('McDonalds +coffee + Mccafe', n = 10000,since='2016-01-01', until='2016-04-19')
+Mccafe <- searchTwitter('McDonalds +coffee + Mccafe', n = 10000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Mccafe_df <- twListToDF(Mccafe)
 
+#rm(list=ls())
 ```
+
+## Cleaning the data
+
+Using the tm package and the gsub to clean the tweets.
+
+```{r, echo=FALSE}
+#clean_tweets <- function(datafeed) {
+#Remove handles
+#datafeed <- str_replace_all(datafeed$text, "@\\w+", "")
+#datafeed <- Corpus(VectorSource(datafeed))
+#Remove punctuation
+#datafeed <- tm_map(datafeed,removePunctuation)
+#Remove Stopwords
+#datafeed <- tm_map(datafeed, removeWords, stopwords("english"))
+#Convert the text to lower case
+#datafeed <- tm_map(datafeed,content_transformer(tolower))
+#Remove whitespace
+#datafeed <- tm_map(datafeed,stripWhitespace)
+#}
+
+
+clean.text <- function(some_txt)
+{
+some_txt = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", some_txt)
+some_txt = gsub("@\\w+", "", some_txt)
+some_txt = gsub("[[:punct:]]", "", some_txt)
+some_txt = gsub("[[:digit:]]", "", some_txt)
+some_txt = gsub("http\\w+", "", some_txt)
+some_txt = gsub("[ \t]{2,}", "", some_txt)
+some_txt = gsub("^\\s+|\\s+$", "", some_txt)
+
+try.tolower = function(x)
+{
+y = NA
+try_error = tryCatch(tolower(x), error=function(e) e)
+if (!inherits(try_error, "error"))
+y = tolower(x)
+return(y)
+}
+ 
+some_txt = sapply(some_txt, try.tolower)
+some_txt = some_txt[some_txt != ""]
+names(some_txt) = NULL
+return(some_txt)
+}
+
+#gc()
+
+dunkin_txt = sapply(Dunkin, function(x) x$getText())
+dunkin_clean <- clean.text(dunkin_txt)
+mcnum = length(dunkin_clean)
+dnkn_df <- data.frame(text=dunkin_clean, sentiment=rep("", mcnum), score=1:mcnum, stringsAsFactors=FALSE)
+View(dnkn_df)
+
+
+pal <- brewer.pal(9,"YlGnBu")
+pal <- pal[-(1:4)]
+set.seed(123)
+wordcloud(words = dunkin_clean, scale=c(5,0.5), max.words=100, random.order=FALSE, 
+          rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+```
+
 
 ## Including Plots
 
