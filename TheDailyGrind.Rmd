@@ -25,20 +25,16 @@ api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
 api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
 access_token <- "915794173-7YxpWXQRfsjbmIWFuSJbr5EzPLJqQ9XSdOjkTmO0"
 access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
+options(httr_oauth_cache = TRUE)# This option is to force direct authentication.
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 
-Dunkin <- searchTwitter('Dunkin', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
+Dunkin <- searchTwitter('Dunkin + coffee', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Dunkin_df <- twListToDF(Dunkin)
 
-Starbucks <- searchTwitter('Starbucks', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
+Starbucks <- searchTwitter('Starbucks + coffee', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Starbucks_df <- twListToDF(Starbucks)
-
-Mccafe <- searchTwitter('McDonalds +coffee + Mccafe', n = 10000,since='2016-01-01', until='2016-04-19',lang='en')
-
-Mccafe_df <- twListToDF(Mccafe)
-
 #rm(list=ls())
 ```
 
@@ -47,60 +43,48 @@ Mccafe_df <- twListToDF(Mccafe)
 Using the tm package and the gsub to clean the tweets.
 
 ```{r, echo=FALSE}
-#clean_tweets <- function(datafeed) {
+library(tm)
+library(wordcloud)
+library(RColorBrewer)
+library(readr)
+
+clean_tweets <- function(datafeed) {
 #Remove handles
-#datafeed <- str_replace_all(datafeed$text, "@\\w+", "")
-#datafeed <- Corpus(VectorSource(datafeed))
+datafeed_list <- str_replace_all(datafeed$text, "@\\w+", "")
+datafeed_list <- Corpus(VectorSource(datafeed_list))
 #Remove punctuation
-#datafeed <- tm_map(datafeed,removePunctuation)
+datafeed_list <- tm_map(datafeed_list,removePunctuation)
 #Remove Stopwords
-#datafeed <- tm_map(datafeed, removeWords, stopwords("english"))
+datafeed_list <- tm_map(datafeed_list, removeWords, stopwords("english"))
 #Convert the text to lower case
-#datafeed <- tm_map(datafeed,content_transformer(tolower))
+datafeed_list <- tm_map(datafeed_list,content_transformer(tolower))
+datafeed_list <- tm_map(datafeed_list,removeWords,c("amp","dunkin","starbucks"))
 #Remove whitespace
-#datafeed <- tm_map(datafeed,stripWhitespace)
-#}
-
-
-clean.text <- function(some_txt)
-{
-some_txt = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", some_txt)
-some_txt = gsub("@\\w+", "", some_txt)
-some_txt = gsub("[[:punct:]]", "", some_txt)
-some_txt = gsub("[[:digit:]]", "", some_txt)
-some_txt = gsub("http\\w+", "", some_txt)
-some_txt = gsub("[ \t]{2,}", "", some_txt)
-some_txt = gsub("^\\s+|\\s+$", "", some_txt)
-
-try.tolower = function(x)
-{
-y = NA
-try_error = tryCatch(tolower(x), error=function(e) e)
-if (!inherits(try_error, "error"))
-y = tolower(x)
-return(y)
+datafeed_list <- tm_map(datafeed_list,stripWhitespace)
 }
- 
-some_txt = sapply(some_txt, try.tolower)
-some_txt = some_txt[some_txt != ""]
-names(some_txt) = NULL
-return(some_txt)
-}
+
+Dunkin_vector <- clean_tweets(Dunkin_df)
+Starbucks_vector <- clean_tweets(Starbucks_df)
+
+
+Dunkin_clean_df <- data.frame(text=unlist(sapply(Dunkin_vector, `[`,"content")),stringAsFactors=F)
+
+Starbucks_clean_df <- data.frame(text=unlist(sapply(Starbucks_vector, `[`,"content")),stringAsFactors=F)
+
+Dunkin_clean_emoji <- data.frame(text=iconv(Dunkin_clean_df$text,"latin1","ASCII","byte")) 
 
 #gc()
-
-dunkin_txt = sapply(Dunkin, function(x) x$getText())
-dunkin_clean <- clean.text(dunkin_txt)
-mcnum = length(dunkin_clean)
-dnkn_df <- data.frame(text=dunkin_clean, sentiment=rep("", mcnum), score=1:mcnum, stringsAsFactors=FALSE)
-View(dnkn_df)
-
-
+#Dunkin wordcloud
 pal <- brewer.pal(9,"YlGnBu")
 pal <- pal[-(1:4)]
 set.seed(123)
-wordcloud(words = dunkin_clean, scale=c(5,0.5), max.words=100, random.order=FALSE, 
+wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=100, random.order=FALSE, 
           rot.per=0.45, use.r.layout=FALSE, colors=pal)
+emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv",delim = ";")
+
+trial <- FindReplace(data = Dunkin_vector,Var = "text",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+
+trial <- sapply(emoji_decoder$`R-encoding`,agrep,Dunkin_clean_emoji$text)
 
 ```
 
