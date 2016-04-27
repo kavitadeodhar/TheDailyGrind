@@ -37,9 +37,12 @@ setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 #Read the emoji decoder file
 emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv",delim = ";")
 
-Dunkin <- searchTwitter('Dunkin + coffee', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
+Dunkin <- searchTwitter('Dunkin', n = 10000,lang='en')
+
+Dunkin_latest <- userTimeline("Dunkin", n = 1000)
 
 Dunkin_df <- twListToDF(Dunkin)
+Dunkin_df <- filter(Dunkin_df,Dunkin_df$latitude!='NA')
 
 Dunkin_byte <- data.frame(text_emoji=iconv(Dunkin_df$text,"latin1","ASCII","byte")) 
 
@@ -49,7 +52,7 @@ Dunkin_bind <- cbind(Dunkin_df,Dunkin_byte) %>% select (text_emoji,created,id)
 Dunkin_convert_emoji <- FindReplace(data = Dunkin_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
 colnames(Dunkin_convert_emoji)[1] <- "text"
 
-Starbucks <- searchTwitter('Starbucks + coffee', n = 1000,since='2016-01-01', until='2016-04-19',lang='en')
+Starbucks <- searchTwitter('Starbucks + coffee', n = 10000,since='2016-01-01', until='2016-04-19',lang='en')
 
 Starbucks_df <- twListToDF(Starbucks)
 
@@ -96,38 +99,71 @@ Starbucks_clean_df <- cbind(Starbucks_clean_df$text,Starbucks_convert_emoji) %>%
 colnames(Starbucks_clean_df)[1] <- "text"
 
 ######################
-mytweets <- get_nrc_sentiment(as.character(Dunkin_clean_df$text))
-head(mytweets)
-tweets <- cbind(Dunkin_clean_df, mytweets)
-sentimentTotals <- data.frame(colSums(tweets[,c(3:11)]))
+##This is the function that allocates scores to tweets and groups them by emotion category.
+get_sentiment <- function(datafeed) {
+sentiment <- get_nrc_sentiment(as.character(datafeed$text))
+head(sentiment)
+qsr_tweets <- cbind(datafeed, sentiment)
+sentimentTotals <- data.frame(colSums(qsr_tweets[,c(4:11)]))
 names(sentimentTotals) <- "count"
 sentimentTotals <- cbind("sentiment" = rownames(sentimentTotals), sentimentTotals)
-rownames(sentimentTotals) <- NULL
-ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +
-        geom_bar(aes(fill = sentiment), stat = "identity") +
-        theme(legend.position = "none") +
-        xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
+}
+
+#get sentiment for starbucks
+Starbucks_sentimentTotals <- get_sentiment(Starbucks_clean_df)
+rownames(Starbucks_sentimentTotals) <- NULL
+Starbucks_sentimentTotals <- mutate(Starbucks_sentimentTotals,QSR = "Starbucks")
+
+#get sentiment for dunkin
+Dunkin_sentimentTotals <- get_sentiment(Dunkin_clean_df)
+rownames(Dunkin_sentimentTotals) <- NULL
+Dunkin_sentimentTotals <- mutate(Dunkin_sentimentTotals,QSR = "Dunkin")
+
+#combine the dataset to compare how the two brands compare.
+sentimentTotals <- union(Dunkin_sentimentTotals,Starbucks_sentimentTotals) %>% arrange(QSR,sentiment) 
+
+#Plot of data for sentiment groups comparing Dunkin and Starbucks using the brands colors.
+
+ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#FF9933","#009933")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
 #########################
 #gc()
 #Dunkin wordcloud
 pal <- brewer.pal(9,"YlGnBu")
 pal <- pal[-(1:4)]
 set.seed(123)
-wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, 
-          rot.per=0.45, use.r.layout=FALSE, colors=pal)
+wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+####Reading ACSI data for Dunkin and Starbucks. Intent is to check if there is any co relation between the sentiment and satisfaction index.
+
+acsi_url <- "http://theacsi.org/index.php?option=com_content&view=article&id=147&catid=&Itemid=212&i=Limited-Service+Restaurants"
+
+library(XML)
+#library(tidyr)
+acsi_df <- readHTMLTable(acsi_url,header=T,stringsAsFactors=F,which = 1)
+colnames(acsi_df)[1] <-"QSR"
+acsi_df <- filter(acsi_df,QSR %in% c("Dunkin' Donuts","Starbucks"))
+acsi_df <- acsi_df[,c(1,23)]
+acsi_df[1,1] <- "Dunkin"
 
 
+get_tweet_score <- function(datafeed){
+sentiment <- get_nrc_sentiment(as.character(datafeed$text))
+head(sentiment)
+qsr_tweets <- cbind(datafeed, sentiment)
+}
+
+Dunkin_Tweet_score <-get_tweet_score(Dunkin_clean_df)
+Dunkin_Tweet_score<- Dunkin_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Dunkin")
+Dunkin_Tweet_score <- mutate(Dunkin_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
 
 
-```
+Starbucks_Tweet_score <-get_tweet_score(Starbucks_clean_df)
+Starbucks_Tweet_score<- Starbucks_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Starbucks")
+Starbucks_Tweet_score <- mutate(Starbucks_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
 
+Tweet_Score <- union(Starbucks_Tweet_score,Dunkin_Tweet_score)
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+Combined_scores <- inner_join(Tweet_Score,acsi_df,by = "QSR")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
