@@ -6,14 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Let us first begin by trying to get data for various regions
 
 ```{r}
 library(twitteR)
@@ -27,22 +25,38 @@ library(readr)
 library(syuzhet)
 library(ggplot2)
 
+##### get authentication should be changed based on the lecture
+
 api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
 api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
 access_token <- "915794173-7YxpWXQRfsjbmIWFuSJbr5EzPLJqQ9XSdOjkTmO0"
 access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
 options(httr_oauth_cache = TRUE)# This option is to force direct authentication.
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
+##################################################################
 
 #Read the emoji decoder file
 emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv",delim = ";")
 
-Dunkin <- searchTwitter('Dunkin', n = 10000,lang='en')
+# Dunkin <- searchTwitter('Dunkin', n = 10000,lang='en')
+# 
+# Dunkin_latest <- userTimeline("Dunkin", n = 1000)
 
-Dunkin_latest <- userTimeline("Dunkin", n = 1000)
+N=200  # tweets to request from each query
+S=200  # radius in miles
+lats=c(32.3,33.5,34.7,37.2,41.2,46.8,46.6,37.2,43,42.7,40.8,36.2,38.6,35.8,40.3,43.6,40.8,44.9,44.9)
+
+lons=c(-86.3,-112,-92.3,-84.4,-93.3,-104.8,-100.8,-112,-93.3,-89,-84.5,-111.8,-86.8,-92.2,-78.6,-76.8,-116.2,-98.7,-123,-93)
+
+#DC,New York,San Fransisco,Colorado,Mountainview,Tampa,Austin,Boston,Seatle,Vegas,Atlanta,Raleigh,Chicago,Los Angeles,Dallas
+Dunkin <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Dunkin',
+              lang="en",n=N,resultType="recent",
+              geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
 
 Dunkin_df <- twListToDF(Dunkin)
-Dunkin_df <- filter(Dunkin_df,Dunkin_df$latitude!='NA')
+
+Dunkin_geo_df <- mutate(Dunkin_df,QSR="Dunkin")
+
 
 Dunkin_byte <- data.frame(text_emoji=iconv(Dunkin_df$text,"latin1","ASCII","byte")) 
 
@@ -52,9 +66,14 @@ Dunkin_bind <- cbind(Dunkin_df,Dunkin_byte) %>% select (text_emoji,created,id)
 Dunkin_convert_emoji <- FindReplace(data = Dunkin_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
 colnames(Dunkin_convert_emoji)[1] <- "text"
 
-Starbucks <- searchTwitter('Starbucks + coffee', n = 10000,since='2016-01-01', until='2016-04-19',lang='en')
+
+
+Starbucks <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Starbucks',
+              lang="en",n=N,resultType="recent",
+              geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
 
 Starbucks_df <- twListToDF(Starbucks)
+Starbucks_geo_df <- mutate(Starbucks_df,QSR="Starbucks")
 
 Starbucks_byte <- data.frame(text_emoji=iconv(Starbucks_df$text,"latin1","ASCII","byte")) 
 
@@ -63,7 +82,30 @@ Starbucks_bind <- cbind(Starbucks_df,Starbucks_byte) %>% select (text_emoji,crea
 Starbucks_convert_emoji <- FindReplace(data = Starbucks_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
 colnames(Starbucks_convert_emoji)[1] <- "text"
 
+QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df)
+head(QSR_geo_df)
 #rm(list=ls())
+```
+
+## plotting data on US map
+
+```{r}
+
+library(grid)
+library(maps)
+library(ggplot2)
+
+map.data <- map_data("state")
+points <- data.frame(x = as.numeric(QSR_geo_df$longitude), y = as.numeric(QSR_geo_df$latitude),QSR=QSR_geo_df$QSR)
+points <- points[points$y > 25, ]
+p <- ggplot(map.data) + geom_map(aes(map_id = region), map = map.data, fill = "#ffffe6", 
+    color = "#996600", size = 0.25) + expand_limits(x = map.data$long, y = map.data$lat) + 
+    theme(axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(), 
+        axis.title = element_blank(), panel.background = element_blank(), panel.border = element_blank(), 
+        panel.grid.major = element_blank(), plot.background = element_blank(),
+        plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines")) + geom_point(data = points, 
+    aes(x = x, y = y,color=QSR), size = 2)
+p+ scale_color_manual(values=c("#F21F88", "#00592D"))
 ```
 
 ## Cleaning the data
@@ -88,7 +130,6 @@ datafeed_list <- tm_map(datafeed_list,stripWhitespace)
 
 Dunkin_vector <- clean_tweets(Dunkin_convert_emoji)
 Starbucks_vector <- clean_tweets(Starbucks_convert_emoji)
-
 
 Dunkin_clean_df <- data.frame(text=unlist(sapply(Dunkin_vector, `[`,"content")),stringAsFactors=F) 
 Dunkin_clean_df <- cbind(Dunkin_clean_df$text,Dunkin_convert_emoji) %>% select (-text)  
@@ -124,27 +165,26 @@ sentimentTotals <- union(Dunkin_sentimentTotals,Starbucks_sentimentTotals) %>% a
 
 #Plot of data for sentiment groups comparing Dunkin and Starbucks using the brands colors.
 
-ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#FF9933","#009933")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
+ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#F21F88", "#00592D")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
 #########################
 #gc()
 #Dunkin wordcloud
-pal <- brewer.pal(9,"YlGnBu")
+pal <- brewer.pal(9,"RdPu")
 pal <- pal[-(1:4)]
 set.seed(123)
 wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
 
+pal <- brewer.pal(9,"YlGn")
+pal <- pal[-(1:4)]
+set.seed(123)
+wordcloud(words = Starbucks_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+
 ####Reading ACSI data for Dunkin and Starbucks. Intent is to check if there is any co relation between the sentiment and satisfaction index.
 
-acsi_url <- "http://theacsi.org/index.php?option=com_content&view=article&id=147&catid=&Itemid=212&i=Limited-Service+Restaurants"
 
 library(XML)
 #library(tidyr)
-acsi_df <- readHTMLTable(acsi_url,header=T,stringsAsFactors=F,which = 1)
-colnames(acsi_df)[1] <-"QSR"
-acsi_df <- filter(acsi_df,QSR %in% c("Dunkin' Donuts","Starbucks"))
-acsi_df <- acsi_df[,c(1,23)]
-acsi_df[1,1] <- "Dunkin"
-
 
 get_tweet_score <- function(datafeed){
 sentiment <- get_nrc_sentiment(as.character(datafeed$text))
@@ -152,8 +192,43 @@ head(sentiment)
 qsr_tweets <- cbind(datafeed, sentiment)
 }
 
+library(reshape2)
+
+Dunkin_Hist <- get_tweet_score(Dunkin_clean_df)
+hist(Dunkin_Hist$negative - Dunkin_Hist$positive)
+
+posnegtime <- Dunkin_Hist %>% 
+        group_by(created = cut(created, breaks="1 day")) %>%
+        summarise(negative = mean(negative),
+                  positive = mean(positive)) %>% melt
+
+names(posnegtime) <- c("timestamp", "sentiment", "meanvalue")
+posnegtime$sentiment = factor(posnegtime$sentiment,levels(posnegtime$sentiment)[c(2,1)])
+
+ggplot(data = posnegtime, aes(x = timestamp, y = meanvalue, group = sentiment)) +
+        geom_line(size = 2.5, alpha = 0.7, aes(color = sentiment)) + theme(axis.text.x = element_text(angle = 40,size=8,vjust=0.3))+
+        ylab("Average sentiment score") + ggtitle("Sentiment Over Time")
+
+
+Starbucks_Hist <- get_tweet_score(Starbucks_clean_df)
+hist(Starbucks_Hist$negative - Starbucks_Hist$positive)
+
+
+acsi_url <- "http://theacsi.org/index.php?option=com_content&view=article&id=147&catid=&Itemid=212&i=Limited-Service+Restaurants"
+acsi_df <- readHTMLTable(acsi_url,header=T,stringsAsFactors=F,which = 1)
+colnames(acsi_df)[1] <-"QSR"
+acsi_df <- filter(acsi_df,QSR %in% c("Dunkin' Donuts","Starbucks"))
+acsi_df[1,1] <- "Dunkin"
+library(tidyr)
+acsi_df <- acsi_df%>%gather(key = Year,value = Csat_pc,20:23)
+acsi_df <- acsi_df %>% select(QSR,Year,Csat_pc) %>% filter(Csat_pc != 'NM')
+acsi_df <- acsi_df %>% group_by(QSR)%>% summarise(average_csat = mean(as.numeric(Csat_pc)))
+
+
 Dunkin_Tweet_score <-get_tweet_score(Dunkin_clean_df)
+
 Dunkin_Tweet_score<- Dunkin_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Dunkin")
+
 Dunkin_Tweet_score <- mutate(Dunkin_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
 
 
@@ -161,9 +236,14 @@ Starbucks_Tweet_score <-get_tweet_score(Starbucks_clean_df)
 Starbucks_Tweet_score<- Starbucks_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Starbucks")
 Starbucks_Tweet_score <- mutate(Starbucks_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
 
-Tweet_Score <- union(Starbucks_Tweet_score,Dunkin_Tweet_score)
+Tweet_Score <- rbind(Starbucks_Tweet_score,Dunkin_Tweet_score)
 
 Combined_scores <- inner_join(Tweet_Score,acsi_df,by = "QSR")
+
+Combined_scores_lm <- select(Combined_scores,QSR,total_pos_pc,average_csat)
+
+ggplot(Combined_scores_lm, aes(x=total_pos_pc, y=average_csat) ) +
+geom_point( aes(color=QSR), size=5 ) + geom_smooth(aes(group=1), se=F, method="lm")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
