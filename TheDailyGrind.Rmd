@@ -24,31 +24,31 @@ library(RColorBrewer)
 library(readr)
 library(syuzhet)
 library(ggplot2)
+library(grid)
+library(maps)
 
-##### get authentication should be changed based on the lecture
+##### Twitter authentication 
 
 api_key <- "Od5rpMWWch3FVBDVBfeFVUjV3"
 api_secret <- "zibZTX8dUmtSEdsHtIG20ErRhnAjA3GqFC2pGSZJ54ImG1Y6B6"
 access_token <- "915794173-7YxpWXQRfsjbmIWFuSJbr5EzPLJqQ9XSdOjkTmO0"
 access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
-options(httr_oauth_cache = TRUE)# This option is to force direct authentication.
+# This option is to force direct authentication.
+options(httr_oauth_cache = TRUE)
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 ##################################################################
 
-#Read the emoji decoder file
+#Read the emoji decoder file. This file will be used to lookup the sentiments which eack emoticon represents.
 emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv",delim = ";")
 
-# Dunkin <- searchTwitter('Dunkin', n = 10000,lang='en')
-# 
-# Dunkin_latest <- userTimeline("Dunkin", n = 1000)
+#Following cities are used to pull the tweets for sentiment analysis: DC,New York,San Fransisco,Colorado,Mountainview,Tampa,Austin,Boston,Seatle,Vegas,Atlanta,Raleigh,Chicago,Los Angeles,Dallas
 
-N=200  # tweets to request from each query
+N=200  # Number tweets to request from each query
 S=200  # radius in miles
 lats=c(32.3,33.5,34.7,37.2,41.2,46.8,46.6,37.2,43,42.7,40.8,36.2,38.6,35.8,40.3,43.6,40.8,44.9,44.9)
-
 lons=c(-86.3,-112,-92.3,-84.4,-93.3,-104.8,-100.8,-112,-93.3,-89,-84.5,-111.8,-86.8,-92.2,-78.6,-76.8,-116.2,-98.7,-123,-93)
 
-#DC,New York,San Fransisco,Colorado,Mountainview,Tampa,Austin,Boston,Seatle,Vegas,Atlanta,Raleigh,Chicago,Los Angeles,Dallas
+#Dunkin Data Set Creation
 Dunkin <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Dunkin',
               lang="en",n=N,resultType="recent",
               geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
@@ -57,22 +57,38 @@ Dunkin_df <- twListToDF(Dunkin)
 
 Dunkin_geo_df <- mutate(Dunkin_df,QSR="Dunkin")
 
-
 Dunkin_byte <- data.frame(text_emoji=iconv(Dunkin_df$text,"latin1","ASCII","byte")) 
 
 Dunkin_bind <- cbind(Dunkin_df,Dunkin_byte) %>% select (text_emoji,created,id)
 
-
 Dunkin_convert_emoji <- FindReplace(data = Dunkin_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
 colnames(Dunkin_convert_emoji)[1] <- "text"
 
+#McDonalds Data Set Creation
 
+McDonalds <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('McDonalds',
+              lang="en",n=N,resultType="recent",
+              geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
+
+McDonalds_df <- twListToDF(McDonalds)
+
+McDonalds_geo_df <- mutate(McDonalds_df,QSR="McDonalds")
+
+McDonalds_byte <- data.frame(text_emoji=iconv(McDonalds_df$text,"latin1","ASCII","byte")) 
+
+McDonalds_bind <- cbind(McDonalds_df,McDonalds_byte) %>% select (text_emoji,created,id)
+
+McDonalds_convert_emoji <- FindReplace(data = McDonalds_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+colnames(McDonalds_convert_emoji)[1] <- "text"
+
+#Starbucks Data Set Creation
 
 Starbucks <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Starbucks',
               lang="en",n=N,resultType="recent",
               geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
 
 Starbucks_df <- twListToDF(Starbucks)
+
 Starbucks_geo_df <- mutate(Starbucks_df,QSR="Starbucks")
 
 Starbucks_byte <- data.frame(text_emoji=iconv(Starbucks_df$text,"latin1","ASCII","byte")) 
@@ -82,7 +98,43 @@ Starbucks_bind <- cbind(Starbucks_df,Starbucks_byte) %>% select (text_emoji,crea
 Starbucks_convert_emoji <- FindReplace(data = Starbucks_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
 colnames(Starbucks_convert_emoji)[1] <- "text"
 
-QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df)
+
+#Panera Data Set Creation
+
+Panera <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Panera',
+              lang="en",n=N,resultType="recent",
+              geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
+
+Panera_df <- twListToDF(Panera)
+
+Panera_geo_df <- mutate(Panera_df,QSR="Panera")
+
+Panera_byte <- data.frame(text_emoji=iconv(Panera_df$text,"latin1","ASCII","byte")) 
+
+Panera_bind <- cbind(Panera_df,Panera_byte) %>% select (text_emoji,created,id)
+
+Panera_convert_emoji <- FindReplace(data = Panera_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+colnames(Panera_convert_emoji)[1] <- "text"
+
+#Subway Data Set Creation
+
+Subway <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('@Subway',
+              lang="en",n=N,resultType="recent",
+              geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
+
+Subway_df <- twListToDF(Subway)
+
+Subway_geo_df <- mutate(Subway_df,QSR="Subway")
+
+Subway_byte <- data.frame(text_emoji=iconv(Subway_df$text,"latin1","ASCII","byte")) 
+
+Subway_bind <- cbind(Subway_df,Subway_byte) %>% select (text_emoji,created,id)
+
+Subway_convert_emoji <- FindReplace(data = Subway_bind,Var = "text_emoji",replaceData = emoji_decoder,from = "R-encoding",to="Description",exact = FALSE)
+colnames(Subway_convert_emoji)[1] <- "text"
+
+#Creating data set to plot it on USA map. Union of all the different restuarant data
+QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df,McDonalds_geo_df,Panera_geo_df,Subway_geo_df)
 #head(QSR_geo_df)
 #rm(list=ls())
 ```
@@ -91,21 +143,17 @@ QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df)
 
 ```{r, echo=FALSE,message=FALSE,warning=FALSE}
 
-library(grid)
-library(maps)
-library(ggplot2)
-
 map.data <- map_data("state")
 points <- data.frame(x = as.numeric(QSR_geo_df$longitude), y = as.numeric(QSR_geo_df$latitude),QSR=QSR_geo_df$QSR)
 points <- points[points$y > 25, ]
-p <- ggplot(map.data) + geom_map(aes(map_id = region), map = map.data, fill = "#ffffe6", 
+p <- ggplot(map.data) + geom_map(aes(map_id = region), map = map.data, fill = "#f1f1f1", 
     color = "#996600", size = 0.25) + expand_limits(x = map.data$long, y = map.data$lat) + 
     theme(axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(), 
         axis.title = element_blank(), panel.background = element_blank(), panel.border = element_blank(), 
         panel.grid.major = element_blank(), plot.background = element_blank(),
         plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines")) + geom_point(data = points, 
     aes(x = x, y = y,color=QSR), size = 2)
-p+ scale_color_manual(values=c("#F21F88", "#00592D"))
+p+ scale_color_manual(values=c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035"))
 ```
 
 ## Cleaning the data
@@ -130,6 +178,9 @@ datafeed_list <- tm_map(datafeed_list,stripWhitespace)
 
 Dunkin_vector <- clean_tweets(Dunkin_convert_emoji)
 Starbucks_vector <- clean_tweets(Starbucks_convert_emoji)
+McDonalds_vector <- clean_tweets(McDonalds_convert_emoji)
+Subway_vector <- clean_tweets(Subway_convert_emoji)
+Panera_vector <- clean_tweets(Panera_convert_emoji)
 
 Dunkin_clean_df <- data.frame(text=unlist(sapply(Dunkin_vector, `[`,"content")),stringAsFactors=F) 
 Dunkin_clean_df <- cbind(Dunkin_clean_df$text,Dunkin_convert_emoji) %>% select (-text)  
@@ -138,6 +189,18 @@ colnames(Dunkin_clean_df)[1] <- "text"
 Starbucks_clean_df <- data.frame(text=unlist(sapply(Starbucks_vector, `[`,"content")),stringAsFactors=F)
 Starbucks_clean_df <- cbind(Starbucks_clean_df$text,Starbucks_convert_emoji) %>% select (-text)  
 colnames(Starbucks_clean_df)[1] <- "text"
+
+McDonalds_clean_df <- data.frame(text=unlist(sapply(McDonalds_vector, `[`,"content")),stringAsFactors=F) 
+McDonalds_clean_df <- cbind(McDonalds_clean_df$text,McDonalds_convert_emoji) %>% select (-text)  
+colnames(McDonalds_clean_df)[1] <- "text"
+
+Panera_clean_df <- data.frame(text=unlist(sapply(Panera_vector, `[`,"content")),stringAsFactors=F) 
+Panera_clean_df <- cbind(Panera_clean_df$text,Panera_convert_emoji) %>% select (-text)  
+colnames(Panera_clean_df)[1] <- "text"
+
+Subway_clean_df <- data.frame(text=unlist(sapply(Subway_vector, `[`,"content")),stringAsFactors=F) 
+Subway_clean_df <- cbind(Subway_clean_df$text,Subway_convert_emoji) %>% select (-text)  
+colnames(Subway_clean_df)[1] <- "text"
 
 ######################
 ##This is the function that allocates scores to tweets and groups them by emotion category.
@@ -150,22 +213,37 @@ names(sentimentTotals) <- "count"
 sentimentTotals <- cbind("sentiment" = rownames(sentimentTotals), sentimentTotals)
 }
 
-#get sentiment for starbucks
+#get sentiment for Starbucks
 Starbucks_sentimentTotals <- get_sentiment(Starbucks_clean_df)
 rownames(Starbucks_sentimentTotals) <- NULL
 Starbucks_sentimentTotals <- mutate(Starbucks_sentimentTotals,QSR = "Starbucks")
 
-#get sentiment for dunkin
+#get sentiment for Dunkin
 Dunkin_sentimentTotals <- get_sentiment(Dunkin_clean_df)
 rownames(Dunkin_sentimentTotals) <- NULL
 Dunkin_sentimentTotals <- mutate(Dunkin_sentimentTotals,QSR = "Dunkin")
 
+#get sentiment for McDonalds
+McDonalds_sentimentTotals <- get_sentiment(McDonalds_clean_df)
+rownames(McDonalds_sentimentTotals) <- NULL
+McDonalds_sentimentTotals <- mutate(McDonalds_sentimentTotals,QSR = "McDonalds")
+
+#get sentiment for Panera
+Panera_sentimentTotals <- get_sentiment(Panera_clean_df)
+rownames(Panera_sentimentTotals) <- NULL
+Panera_sentimentTotals <- mutate(Panera_sentimentTotals,QSR = "Panera")
+
+#get sentiment for Subway
+Subway_sentimentTotals <- get_sentiment(Subway_clean_df)
+rownames(Subway_sentimentTotals) <- NULL
+Subway_sentimentTotals <- mutate(Subway_sentimentTotals,QSR = "Subway")
+
 #combine the dataset to compare how the two brands compare.
-sentimentTotals <- union(Dunkin_sentimentTotals,Starbucks_sentimentTotals) %>% arrange(QSR,sentiment) 
+sentimentTotals <- rbind(Dunkin_sentimentTotals,Starbucks_sentimentTotals,McDonalds_sentimentTotals,Panera_sentimentTotals,Subway_sentimentTotals) %>% arrange(QSR,sentiment) 
 
 #Plot of data for sentiment groups comparing Dunkin and Starbucks using the brands colors.
 
-ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#F21F88", "#00592D")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
+ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
 #########################
 #gc()
 #Dunkin wordcloud
@@ -178,6 +256,21 @@ pal <- brewer.pal(9,"YlGn")
 pal <- pal[-(1:4)]
 set.seed(123)
 wordcloud(words = Starbucks_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+pal <- brewer.pal(9,"YlOrRd")
+pal <- pal[-(1:4)]
+set.seed(123)
+wordcloud(words = McDonalds_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+pal <- brewer.pal(7,"RdYlGn")
+pal <- pal[-(1:4)]
+set.seed(123)
+wordcloud(words = Panera_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+
+pal <- brewer.pal(9,"Greens")
+pal <- pal[-(1:4)]
+set.seed(123)
+wordcloud(words = Subway_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
 
 
 ####Reading ACSI data for Dunkin and Starbucks. Intent is to check if there is any co relation between the sentiment and satisfaction index.
@@ -193,11 +286,14 @@ qsr_tweets <- cbind(datafeed, sentiment)
 }
 
 library(reshape2)
+#This function is used to create sentiment over time plot
 
-Dunkin_Hist <- get_tweet_score(Dunkin_clean_df)
-hist(Dunkin_Hist$negative - Dunkin_Hist$positive)
+sentiment_time <- function (pass_df)
+{
+Hist <- get_tweet_score(pass_df)
+hist(Hist$negative - Hist$positive)
 
-posnegtime <- Dunkin_Hist %>% 
+posnegtime <- Hist %>% 
         group_by(created = cut(created, breaks="1 day")) %>%
         summarise(negative = mean(negative),
                   positive = mean(positive)) %>% melt
@@ -207,36 +303,52 @@ posnegtime$sentiment = factor(posnegtime$sentiment,levels(posnegtime$sentiment)[
 
 ggplot(data = posnegtime, aes(x = timestamp, y = meanvalue, group = sentiment)) +
         geom_line(size = 2.5, alpha = 0.7, aes(color = sentiment)) + theme(axis.text.x = element_text(angle = 40,size=8,vjust=0.3))+
-        ylab("Average sentiment score") + ggtitle("Sentiment Over Time")
+        ylab("Average sentiment score") + ggtitle("Sentiment Over Time") 
+}
+
+sentiment_time(Dunkin_clean_df)
+sentiment_time(Starbucks_clean_df)
+sentiment_time(McDonalds_clean_df)
+sentiment_time(Panera_clean_df)
+sentiment_time(Subway_clean_df)
 
 
-Starbucks_Hist <- get_tweet_score(Starbucks_clean_df)
-hist(Starbucks_Hist$negative - Starbucks_Hist$positive)
-
+#Getting the acsi data for the QSR's
 
 acsi_url <- "http://theacsi.org/index.php?option=com_content&view=article&id=147&catid=&Itemid=212&i=Limited-Service+Restaurants"
 acsi_df <- readHTMLTable(acsi_url,header=T,stringsAsFactors=F,which = 1)
 colnames(acsi_df)[1] <-"QSR"
-acsi_df <- filter(acsi_df,QSR %in% c("Dunkin' Donuts","Starbucks"))
-acsi_df[1,1] <- "Dunkin"
+acsi_df <- filter(acsi_df,QSR %in% c("Dunkin' Donuts","Starbucks","Panera Bread","McDonald's","Subway"))
+acsi_df[2,1] <- "Dunkin"
+acsi_df[1,1] <- "Panera"
+acsi_df[5,1] <- "McDonalds"
 library(tidyr)
 acsi_df <- acsi_df%>%gather(key = Year,value = Csat_pc,20:23)
 acsi_df <- acsi_df %>% select(QSR,Year,Csat_pc) %>% filter(Csat_pc != 'NM')
 acsi_df <- acsi_df %>% group_by(QSR)%>% summarise(average_csat = mean(as.numeric(Csat_pc)))
 
-
+######Start
 Dunkin_Tweet_score <-get_tweet_score(Dunkin_clean_df)
-
 Dunkin_Tweet_score<- Dunkin_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Dunkin")
-
 Dunkin_Tweet_score <- mutate(Dunkin_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
-
 
 Starbucks_Tweet_score <-get_tweet_score(Starbucks_clean_df)
 Starbucks_Tweet_score<- Starbucks_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Starbucks")
 Starbucks_Tweet_score <- mutate(Starbucks_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
 
-Tweet_Score <- rbind(Starbucks_Tweet_score,Dunkin_Tweet_score)
+McDonalds_Tweet_score <-get_tweet_score(McDonalds_clean_df)
+McDonalds_Tweet_score<- McDonalds_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="McDonalds")
+McDonalds_Tweet_score <- mutate(McDonalds_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
+
+Panera_Tweet_score <-get_tweet_score(Panera_clean_df)
+Panera_Tweet_score<- Panera_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Panera")
+Panera_Tweet_score <- mutate(Panera_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
+
+Subway_Tweet_score <-get_tweet_score(Subway_clean_df)
+Subway_Tweet_score<- Subway_Tweet_score%>%summarize(total_pos_score = sum(positive),total_neg_score = sum(negative)) %>% mutate(QSR ="Subway")
+Subway_Tweet_score <- mutate(Subway_Tweet_score,total_score=total_pos_score+total_neg_score, total_pos_pc = total_pos_score*100/(total_pos_score+total_neg_score))
+
+Tweet_Score <- rbind(Starbucks_Tweet_score,Dunkin_Tweet_score,McDonalds_Tweet_score,Panera_Tweet_score,Subway_Tweet_score)
 
 Combined_scores <- inner_join(Tweet_Score,acsi_df,by = "QSR")
 
