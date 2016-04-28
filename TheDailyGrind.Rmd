@@ -6,14 +6,14 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(comment = NA, echo=FALSE, message = FALSE, warnings = FALSE)
 ```
 
 ## R Markdown
 
 Let us first begin by trying to get data for various regions
 
-```{r}
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
 library(twitteR)
 library(dplyr)
 library(stringr)
@@ -83,13 +83,13 @@ Starbucks_convert_emoji <- FindReplace(data = Starbucks_bind,Var = "text_emoji",
 colnames(Starbucks_convert_emoji)[1] <- "text"
 
 QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df)
-head(QSR_geo_df)
+#head(QSR_geo_df)
 #rm(list=ls())
 ```
 
 ## plotting data on US map
 
-```{r}
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
 
 library(grid)
 library(maps)
@@ -112,7 +112,7 @@ p+ scale_color_manual(values=c("#F21F88", "#00592D"))
 
 Using the tm package and the gsub to clean the tweets.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
 clean_tweets <- function(datafeed) {
 #Remove handles
 datafeed_list <- str_replace_all(datafeed$text, "@\\w+", "")
@@ -172,12 +172,12 @@ ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(a
 pal <- brewer.pal(9,"RdPu")
 pal <- pal[-(1:4)]
 set.seed(123)
-wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
 
 pal <- brewer.pal(9,"YlGn")
 pal <- pal[-(1:4)]
 set.seed(123)
-wordcloud(words = Starbucks_vector, scale=c(5,0.5), max.words=200, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+wordcloud(words = Starbucks_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
 
 
 ####Reading ACSI data for Dunkin and Starbucks. Intent is to check if there is any co relation between the sentiment and satisfaction index.
@@ -243,7 +243,7 @@ Combined_scores <- inner_join(Tweet_Score,acsi_df,by = "QSR")
 Combined_scores_lm <- select(Combined_scores,QSR,total_pos_pc,average_csat)
 
 ggplot(Combined_scores_lm, aes(x=total_pos_pc, y=average_csat) ) +
-geom_point( aes(color=QSR), size=5 ) + geom_smooth(aes(group=1), se=F, method="lm")
+geom_point( aes(color=QSR), size=5 ) + geom_smooth( method="lm")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
