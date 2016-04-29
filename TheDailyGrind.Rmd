@@ -58,7 +58,7 @@ emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-d
 
 #Following cities are used to pull the tweets for sentiment analysis: DC,New York,San Fransisco,Colorado,Mountainview,Tampa,Austin,Boston,Seatle,Vegas,Atlanta,Raleigh,Chicago,Los Angeles,Dallas
 
-N=200  # Number tweets to request from each query
+N=400  # Number tweets to request from each query
 S=200  # radius in miles
 lats=c(32.3,33.5,34.7,37.2,41.2,46.8,46.6,37.2,43,42.7,40.8,36.2,38.6,35.8,40.3,43.6,40.8,44.9,44.9)
 lons=c(-86.3,-112,-92.3,-84.4,-93.3,-104.8,-100.8,-112,-93.3,-89,-84.5,-111.8,-86.8,-92.2,-78.6,-76.8,-116.2,-98.7,-123,-93)
