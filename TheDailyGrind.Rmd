@@ -12,8 +12,7 @@ knitr::opts_chunk$set(comment = NA, echo=FALSE, message = FALSE, warnings = FALS
 ## R Markdown
 Sentiment analysis is a process of determining whether a particular sentence is positive, negative or neutral. it is also called opinion mining. Social Media is a daily diary for many people. It is now easy to let your voice be heard even if it is about a simple thing like our regular cup of coffee. There are many options and people tend to be loyal to their brands. The intent is to explore which brand do people favor based on their tweets. We will be doing sentiment analysis on different quick service restaurants using twitter data. 
 
-We will also try to see if a region favors one brand over the other. Also the intent is to explore whether momentary emotion conveyed via a tweet has any correlation on customer satisfaction index. We will compare CSAT data from ACSI(American customer satisfaction index) to the scores generated using our code.
-Let us first begin by trying to get data for various regions
+For the purpose of this project we are going to use the following brands.
 
 <img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/master/dunkin.png">
 <img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/master/Starbucks_Coffee_Logo.svg.png">
@@ -21,7 +20,9 @@ Let us first begin by trying to get data for various regions
 <img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/master/panera-bread-logo.png">
 <img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/master/subway.jpg">
 
+Note: We will cover the challenges faced at the end of this markdown.
 
+Let us start by gathering data using twitter API. 
 ```{r, echo=FALSE,message=FALSE,warning=FALSE}
 library(twitteR)
 library(dplyr)
@@ -46,8 +47,13 @@ access_token_secret <- "P09dahyCxPhuTpJ3sXhZfNgZEALpr8jkaWIA2DwEcMbLq"
 options(httr_oauth_cache = TRUE)
 setup_twitter_oauth(api_key,api_secret,access_token,access_token_secret)
 ##################################################################
+```
+We have also attempted to decode emojis used in the tweets. Considering the fact that most people may also exclusively communicate using emojis(You can now order pizza using emojis!), we decided not to drop emojis out of our analysis.Source of this data is "https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv"
 
-#Read the emoji decoder file. This file will be used to lookup the sentiments which eack emoticon represents.
+First we create data sets for each of the individual brands.
+
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
+#Read the emoji decoder file. This file will be used to lookup the sentiments that each emoticon represents.
 emoji_decoder <- read_delim("https://raw.githubusercontent.com/today-is-a-good-day/Emoticons/master/emDict.csv",delim = ";")
 
 #Following cities are used to pull the tweets for sentiment analysis: DC,New York,San Fransisco,Colorado,Mountainview,Tampa,Austin,Boston,Seatle,Vegas,Atlanta,Raleigh,Chicago,Los Angeles,Dallas
@@ -61,10 +67,12 @@ lons=c(-86.3,-112,-92.3,-84.4,-93.3,-104.8,-100.8,-112,-93.3,-89,-84.5,-111.8,-8
 #Twitter search for Dunkin
 Dunkin <- do.call(rbind,lapply(1:length(lats), function(i) searchTwitter('Dunkin',
               lang="en",n=N,resultType="recent",
+              
               geocode=paste(lats[i],lons[i],paste0(S,"mi"),sep=","))))
 
 #Converting the data to data frame
 Dunkin_df <- twListToDF(Dunkin)
+
 
 #Adding a column 
 Dunkin_geo_df <- mutate(Dunkin_df,QSR="Dunkin")
@@ -170,9 +178,11 @@ colnames(Subway_convert_emoji)[1] <- "text"
 
 #Creating data set to plot it on USA map. Union of all the different restuarant data
 QSR_geo_df <- rbind(Dunkin_geo_df,Starbucks_geo_df,McDonalds_geo_df,Panera_geo_df,Subway_geo_df)
-#head(QSR_geo_df)
+
 #rm(list=ls())
 ```
+
+As the first part of our analysis,we are going to map all the tweets based on the geo code on US map. This is an attempt to see which brand is popular in which region.
 
 ## plotting data on US map
 
@@ -191,9 +201,12 @@ p <- ggplot(map.data) + geom_map(aes(map_id = region), map = map.data, fill = "#
 p+ scale_color_manual(values=c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035"))
 ```
 
-## Cleaning the data
+From the map above,we can see the distribution of tweets across the country. We see that the number of tweets for Panera look higher. The number of tweets for every brand was the same.This simply means that the latitude longitude information was available for larger number of tweets for Panera than the other brands. 
 
-Using the tm package and the gsub to clean the tweets.
+Next we proceed with cleaning the data before calculating the score for every tweet.This includes removing special characters, punctuations, words like https, https.
+
+## Cleaning the data
+## Using the tm package to clean the tweets.
 
 ```{r, echo=FALSE,message=FALSE,warning=FALSE}
 #Function to clean the tweet data
@@ -207,7 +220,7 @@ datafeed_list <- tm_map(datafeed_list,removePunctuation)
 datafeed_list <- tm_map(datafeed_list, removeWords, stopwords("english"))
 #Convert the text to lower case
 datafeed_list <- tm_map(datafeed_list,content_transformer(tolower))
-datafeed_list <- tm_map(datafeed_list,removeWords,c("amp","dunkin","starbucks","http","https"))
+datafeed_list <- tm_map(datafeed_list,removeWords,c("amp","http","https"))
 #Remove whitespace
 datafeed_list <- tm_map(datafeed_list,stripWhitespace)
 }
@@ -286,10 +299,28 @@ sentimentTotals <- rbind(Dunkin_sentimentTotals,Starbucks_sentimentTotals,McDona
 #Plot of data for sentiment groups comparing Dunkin and Starbucks using the brands colors.
 
 ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
+
+```
+The above plot shows how the brands compare for the number of tweets per category. 
+
+The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?
+
+Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases.
+
 #########################
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
+#Assign title to wordcloud
+title_wordcloud <- function(QSR_name,hexcolorname){
+layout(matrix(c(1,2),nrow=2),heights = c(1,4))
+par(mar=rep(0,4))
+plot.new()
+text(x=0.5,y=0.5,QSR_name,col = hexcolorname, cex = 2.0) 
+}
+
 
 #Word cloud for Dunkin
 
+title_wordcloud("Dunkin' Donuts","#F21F88")
 pal <- brewer.pal(9,"RdPu")
 pal <- pal[-(1:4)]
 set.seed(123)
@@ -297,6 +328,7 @@ wordcloud(words = Dunkin_vector, scale=c(5,0.5), max.words=250, random.order=FAL
 
 #Word cloud for Starbucks
 
+title_wordcloud("Starbucks","#00592D")
 pal <- brewer.pal(9,"YlGn")
 pal <- pal[-(1:4)]
 set.seed(123)
@@ -304,6 +336,7 @@ wordcloud(words = Starbucks_vector, scale=c(5,0.5), max.words=250, random.order=
 
 #Word cloud for McDonalds
 
+title_wordcloud("McDonald's","#9748a8")
 pal <- brewer.pal(9,"YlOrRd")
 pal <- pal[-(1:4)]
 set.seed(123)
@@ -311,6 +344,7 @@ wordcloud(words = McDonalds_vector, scale=c(5,0.5), max.words=250, random.order=
 
 #Word cloud for Panera
 
+title_wordcloud("Panera Bread","#ECC56D")
 pal <- brewer.pal(7,"RdYlGn")
 pal <- pal[-(1:4)]
 set.seed(123)
@@ -318,14 +352,18 @@ wordcloud(words = Panera_vector, scale=c(5,0.5), max.words=250, random.order=FAL
 
 #Workd Cloud for Subway
 
+title_wordcloud("Subway","#fef035")
 pal <- brewer.pal(9,"Greens")
 pal <- pal[-(1:4)]
 set.seed(123)
 wordcloud(words = Subway_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
+```
 
+ACSI is the customer satisfaction indicator.
+
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
 
 ####Reading ACSI data for Dunkin and Starbucks. Intent is to check if there is any co relation between the sentiment and satisfaction index.
-
 
 library(XML)
 #library(tidyr)
@@ -433,4 +471,4 @@ ggplot(Combined_scores_lm, aes(x=total_pos_pc, y=average_csat) ) +
 geom_point( aes(color=QSR), size=5 ) + geom_smooth( method="lm")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+We will also try to see if a region favors one brand over the other. Also the intent is to explore whether momentary emotion conveyed via a tweet has any correlation on customer satisfaction index. We will compare CSAT data from ACSI(American customer satisfaction index) to the scores generated using our code.
