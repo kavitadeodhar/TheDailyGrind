@@ -41,28 +41,28 @@
         <h3>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview.</h3>
 
-<p>Social Media is a daily diary for many people. It is now easy to let your voice be heard even if it is about a simple thing like our regular cup of coffee. There are many options and people tend to be loyal to their brands. The intent is to explore which brand do people favor based on their tweets. We will also try to see if a region favors one brand over the other. Also the intent is to explore whether momentary emotion conveyed via a tweet has any correlation on customer satisfaction index. We will compare CSAT data from ACSI(American customer satisfaction index) to the scores generated using our code.</p>
+<p>Social Media is a daily diary for many people. It is now easy to let your voice be heard even if it is about a simple thing like our regular cup of coffee. There are many options and people tend to be loyal to their brands. The intent is to explore which brand do people favor based on their tweets. We would like to show how data could provide highly useful insights about the business. This should serve as a source of information and should provide valuable insights. By harnessing the power of data companies can provide better service to the customers. This could be used for better customer service, improving marketing strategy. It could also be used to see how a company could expand their presence. We will also try to see if a region favors one brand over the other. Also the intent is to explore whether momentary emotion conveyed via a tweet has any correlation on customer satisfaction index. We will compare CSAT data from ACSI(American customer satisfaction index) to the scores generated using our code.</p>
 
 <h3>
 <a id="objectives" class="anchor" href="#objectives" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Objectives</h3>
 
-<p>Here’s what would like to learn and accomplish:</p>
+<p>Through this project we would like to learn and accomplish following objectives:</p>
 
 <ul>
-<li>Perform sentiment analysis on twitter data for various coffee shop brands and determine which brand is most favored.</li>
+<li>Perform sentiment analysis on twitter data for various quick service restaurant brands and determine which brand is most favored.</li>
 <li>Does brand preference change in different parts of the country?</li>
 <li>Perform regression analysis and determine if emotion expressed on twitter ties into/affects/compares to customer satisfaction index calculated using multivariate customer experience data.</li>
-<li>We would like to see if there is a trend (plot against time) but we may not be able to do it due to the size of data.</li>
+<li>We would like to see if there is a trend (plot against time).</li>
 </ul>
 
 <h3>
 <a id="approach" class="anchor" href="#approach" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Approach</h3>
 
-<p>Scrap the data
-From where and how are you collecting your data?
-1.Tweets with hash tags of various coffee brands will be our source of data. We will be using the twitteR package.
-2.ACSI data from ACSI website for Quick Serve Restaurants like Dunkin, Starbucks, Mc Donalds etc.
-3.Dataset (text, csv) containing positive and negative words.</p>
+<p>We began our study by collecting data from sources:
+1. Tweets with hash tags of various quick service restaurants were collected using the twitterR package.
+2. ACSI data from ACSI website for following Quick Serve Restaurants like Dunkin, Starbucks, McDonalds, Panera and Subway.
+3. Emoticons conversion file
+We then performed the data scraping tasks. The tweets collected had emoticons. To get the right sentiment from these emojis we had to convert these emojis to correct text. The data was cleansed so that each tweet could impart the correct sentiment. Once the data was cleansed we performed a series of exploratory data analysis to understand the general sentiment of a quick service restaurant. This analysis revealed a lot of facts about how a company is perceived by a customer. </p>
 
 <h3>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h3>
