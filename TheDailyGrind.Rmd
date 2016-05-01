@@ -213,20 +213,16 @@ p <- ggplot(map.data) + geom_map(aes(map_id = region), map = map.data, fill = "#
         axis.title = element_blank(), panel.background = element_blank(), panel.border = element_blank(), 
         panel.grid.major = element_blank(), plot.background = element_blank(),
         plot.margin = unit(0 * c(-1.5, -1.5, -1.5, -1.5), "lines")) + geom_point(data = points, 
-    aes(x = x, y = y,color=QSR), size = 2)
+    aes(x = x, y = y,color=QSR), size = 1.5)
 p+ scale_color_manual(values=c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035"))
 ```
 
-From the map above,we can see the distribution of tweets across the country. We see that the number of tweets for Panera look higher. However th number of tweets for every brand was the same.This simply means that the latitude longitude information was available for larger number of tweets for Panera than the other brands.
-
-Note: We have included in the website, a couple of extra map screenshots obtained by running the code at various times of the day. We can see that Dunkin and Starbucks are popular during the morning or breakfast hours and preference for Panera strongly increases during the later part or lunch hours of the day.
+From the map above,we can see the distribution of tweets across the country. We see that the number of tweets for Panera look higher. However the number of tweets for every brand was the same.This simply means that the latitude longitude information was available for larger number of tweets for Panera than the other brands.
 
 ## Cleaning the data
 ####Using the tm package to clean the tweets.
 
-
 Next we proceed with cleaning the data before calculating the score for every tweet.This includes removing special characters, punctuations, words like http, https.
-
 
 ```{r, message=FALSE,warning=FALSE}
 #Function to clean the tweet data
@@ -240,7 +236,7 @@ datafeed_list <- tm_map(datafeed_list,removePunctuation)
 datafeed_list <- tm_map(datafeed_list, removeWords, stopwords("english"))
 #Convert the text to lower case
 datafeed_list <- tm_map(datafeed_list,content_transformer(tolower))
-datafeed_list <- tm_map(datafeed_list,removeWords,c("amp","http","https"))
+datafeed_list <- tm_map(datafeed_list,removeWords,c("amp","http","https","hiring"))
 #Remove whitespace
 datafeed_list <- tm_map(datafeed_list,stripWhitespace)
 }
@@ -277,9 +273,10 @@ Subway_clean_df <- data.frame(text=unlist(sapply(Subway_vector, `[`,"content")),
 Subway_clean_df <- cbind(Subway_clean_df$text,Subway_convert_emoji) %>% select (-text)  
 colnames(Subway_clean_df)[1] <- "text"
 ```
+
 ## Calculating tweet scores for all brands.
 
-#### We will use the nrc sentiment categories.The get_nrc_sentiment implements Saif Mohammad's NRC Emotion lexicon. According to Mohammad, "the NRC emotion lexicon is a list of words and their associations with eight emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive)" (See http://www.purl.org/net/NRCemotionlexicon). The get_nrc_sentiment function returns a data frame in which each row represents a sentence from the original file. Source of the above information is "https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html"
+We will use the nrc sentiment categories.The get_nrc_sentiment implements Saif Mohammad's NRC Emotion lexicon. According to Mohammad, "the NRC emotion lexicon is a list of words and their associations with eight emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive)" (See http://www.purl.org/net/NRCemotionlexicon). The get_nrc_sentiment function returns a data frame in which each row represents a sentence from the original file. Source of the above information is "https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html"
 
 ```{r, message=FALSE,warning=FALSE}
 ######################
@@ -321,8 +318,9 @@ Subway_sentimentTotals <- mutate(Subway_sentimentTotals,QSR = "Subway")
 #combine the dataset to compare the brands.
 sentimentTotals <- rbind(Dunkin_sentimentTotals,Starbucks_sentimentTotals,McDonalds_sentimentTotals,Panera_sentimentTotals,Subway_sentimentTotals) %>% arrange(QSR,sentiment) 
 ```
+
 ##Sentiment per brand
-####Below is the plot of number of tweets per brand per category.It helps is understand the general emotion for each brand and also per category for every brand.
+Below is the plot of number of tweets per brand per category.It helps is understand the general emotion for each brand and also per category for every brand.
 
 ```{r, message=FALSE,warning=FALSE}
 #Plot of data for sentiment groups comparing all brands using the brands colors.
@@ -330,11 +328,12 @@ sentimentTotals <- rbind(Dunkin_sentimentTotals,Starbucks_sentimentTotals,McDona
 ggplot(data = sentimentTotals, aes(x = sentiment, y = count)) +       geom_bar(aes(fill = QSR), stat = "identity" , position = position_dodge()) +scale_fill_manual(values = c("#F21F88", "#9748a8","#ECC56D","#00592D","#fef035")) + xlab("Sentiment") + ylab("Total Count") + ggtitle("Total Sentiment Score for All Tweets")
 
 ```
-##Dunkin seems to be the brand people trust the most and Starbucks gives most joy to people.There also is a lot of negative emotion for McDonalds.Tweets about Subway and Panera seem to be spread equally over all categories of emotion.
 
-##The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?
+Dunkin seems to be the brand people trust the most and Starbucks gives most joy to people.There also is a lot of negative emotion for McDonalds.Tweets about Subway and Panera seem to be spread equally over all categories of emotion.
 
-##Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases.
+The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?
+
+Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases.
 
 #########################
 ```{r, echo=FALSE,message=FALSE,warning=FALSE}
@@ -345,7 +344,6 @@ par(mar=rep(0,4))
 plot.new()
 text(x=0.5,y=0.5,QSR_name,col = hexcolorname, cex = 2.0) 
 }
-
 
 #Word cloud for Dunkin
 
@@ -387,9 +385,10 @@ pal <- pal[-(1:4)]
 set.seed(123)
 wordcloud(words = Subway_vector, scale=c(5,0.5), max.words=250, random.order=FALSE, rot.per=0.45, use.r.layout=FALSE, colors=pal)
 ```
-####The most used words will change through out the course of the day as more tweets are added from the new day and old ones removed.
 
-####We have been able to gather tweets only for a ceratin number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we will calculate and plot negative and positive sentiment over the last few days for all the brands.
+The most used words will change through out the course of the day as more tweets are added from the new day and old ones removed.
+
+We have been able to gather tweets only for a ceratin number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we will calculate and plot negative and positive sentiment over the last few days for all the brands.
 
 ```{r, message=FALSE,warning=FALSE}
 
@@ -433,7 +432,7 @@ sentiment_time(Subway_clean_df,"Subway Sentiment Over Time","#fef035","#00592D")
 ```
 
 ##Comparing the distribution of scores.
-####Next step would be to check the distribution of scores or sentiments. The difference between the positive and negative scores will give the general tweet sentiment or score. negative value will indicate negative sentiment and positive value will contain positive sentiment.  
+Next step would be to check the distribution of scores or sentiments. The difference between the positive and negative scores will give the general tweet sentiment or score. negative value will indicate negative sentiment and positive value will contain positive sentiment.  
 
 ```{r, message=FALSE,warning=FALSE}
 #Function to Plot the score for different QSR. This function takes the restaurant name, color and plot description as input. The difference between the positive and negative scores gives the "total" score of the tweet.
@@ -452,9 +451,9 @@ hist_time(Subway_clean_df,"#fef035","Subway Score Histogram")
 ```
 
 ##Compare with ACSI data.
-####The customer satisfaction (ACSI) index score is calculated as a weighted average of three survey questions that measure different facets of satisfaction with a product or service. ACSI researchers use proprietary software technology to estimate the weighting for each question.Source of this information is "http://www.theacsi.org"
+The customer satisfaction (ACSI) index score is calculated as a weighted average of three survey questions that measure different facets of satisfaction with a product or service. ACSI researchers use proprietary software technology to estimate the weighting for each question.Source of this information is "http://www.theacsi.org"
 
-####The last step is to compare the average tweet score(calculated for tweets in our dataset which are over a period of few days only) for all our brands with the ACSI index score which is determined as described above.
+The last step is to compare the average tweet score(calculated for tweets in our dataset which are over a period of few days only) for all our brands with the ACSI index score which is determined as described above.
 
 ```{r, message=FALSE,warning=FALSE}
 #Getting the acsi data for the QSR's. 
@@ -516,8 +515,8 @@ geom_point( aes(color=QSR), size=5 ) + geom_smooth( method="lm", se=FALSE)
 
 ```
 
-####As can be seen from the table with average tweet scores calculated by us and ACSI index determined through surveys and research are close. There is a good possibility that the tweet scores could be used to predict the satisfaction index.
+As can be seen from the table with average tweet scores calculated by us and ACSI index determined through surveys and research are close. There is a good possibility that the tweet scores could be used to predict the satisfaction index.
 
 ##Conclusion:
-####We were able 
 
+Based on the visualizations above, we can see that there is a strong preference for Panera over the rest of the brands.As was the objective, region specific preference cannot be concluded due to the lack of twitter data with the latitude and longitude information. From the chart "Total Sentiment Score for all tweets", we can see the sentiment expressed by people for various brands. E.g. Trust is the highest for Dunkin.The word cloud shows the most used words for a brand.E.g. Starbucks has hiring veterans program which is seen to be very popular.We were also able to plot sentiment (positive and negative) per brand over a period of a few days. Due to limitation of the twitter API, which limits the tweets that can be used, only to a few days old, we were not able to trend over months of data. But the trend over days presents the change in sentiment per day quite well. Again, it is seen that Panera has the least negative or most positive sentiment over the twitter dataset we have analysed.We were able to decode emojis which we thought was important in sentiment analysis due to it's extensive use in social media these days. Lastly, we also to compare the satisfaction of customers based on positive twitter scores to the ASCI index score which is caluculated by means of extensive surveying. Although we were not able to compare these numbers over years, but just the averages, they were pretty close. So we think that the twitter scores could be used to predict the satifaction index especially if a larger dataset(more tweets thus resulting in a large number of scores) could be obtained.
