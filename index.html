@@ -70,11 +70,18 @@ We then performed the data scraping tasks. The tweets collected had emoticons. T
 <h3>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h3>
 
-<p>All the figures</p>
+<p>As the first part of our analysis,we are going to map all the tweets based on the geo code on US map. This is an attempt to see which brand is popular in which region. </p>
 
-<p><img src="images/USmap.PNG" alt="Sumit"> </p>
+<p><img src="images/USmap.PNG" alt="Sumit"> 
+From the map above,we can see the distribution of tweets across the country. We see that the number of tweets for Panera look higher. The number of tweets for every brand was the same.This simply means that the latitude longitude information was available for larger number of tweets for Panera than the other brands.</p>
+
+<p>Next we proceed with cleaning the data before calculating the score for every tweet.This includes removing special characters, punctuations, words like https, https.  </p>
 
 <p><img src="images/Sentiment.PNG" alt="Sumit"> </p>
+
+<p>The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?</p>
+
+<p>Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases. </p>
 
 <p><img src="images/DD_wordmap.PNG" alt="Sumit"> </p>
 
