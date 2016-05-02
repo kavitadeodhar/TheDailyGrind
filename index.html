@@ -70,6 +70,9 @@ We then performed the data scraping tasks. The tweets collected had emoticons. T
 <h3>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h3>
 
+<h4>
+<a id="plotting-data-on-us-map" class="anchor" href="#plotting-data-on-us-map" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plotting data on US map</h4>
+
 <p>As the first part of our analysis,we are going to map all the tweets based on the geo code on US map. This is an attempt to see which brand is popular in which region. </p>
 
 <p><img src="images/USmap.PNG" alt="Sumit"> 
@@ -77,13 +80,22 @@ From the map above,we can see the distribution of tweets across the country. We 
 
 <p>Next we proceed with cleaning the data before calculating the score for every tweet.This includes removing special characters, punctuations, words like https, https.  </p>
 
-<p><img src="images/Sentiment.PNG" alt="Sumit"> </p>
+<h4>
+<a id="calculating-tweet-scores-for-all-brands" class="anchor" href="#calculating-tweet-scores-for-all-brands" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Calculating tweet scores for all brands.</h4>
+
+<p>We will use the nrc sentiment categories.The get_nrc_sentiment implements Saif Mohammad’s NRC Emotion lexicon. According to Mohammad, “the NRC emotion lexicon is a list of words and their associations with eight emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive)” (See <a href="http://www.purl.org/net/NRCemotionlexicon">http://www.purl.org/net/NRCemotionlexicon</a>). The get_nrc_sentiment function returns a data frame in which each row represents a sentence from the original file. Source of the above information is “<a href="https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html%E2%80%9D">https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html”</a></p>
+
+<h4>
+<a id="sentiment-per-brand" class="anchor" href="#sentiment-per-brand" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment per brand</h4>
+
+<p>Below is the plot of number of tweets per brand per category.It helps is understand the general emotion for each brand and also per category for every brand.
+<img src="images/Sentiment.PNG" alt="Sumit"> </p>
 
 <p>The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?</p>
 
-<p>Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases. </p>
-
-<p><img src="images/DD_wordmap.PNG" alt="Sumit"> </p>
+<p>Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases. 
+The most used words will change through out the course of the day as more tweets are added from the new day and old ones removed.
+<img src="images/DD_wordmap.PNG" alt="Sumit"> </p>
 
 <p><img src="images/SB_wordmap.PNG" alt="Sumit"> </p>
 
@@ -93,7 +105,11 @@ From the map above,we can see the distribution of tweets across the country. We 
 
 <p><img src="images/subway_wordmap.PNG" alt="Sumit"> </p>
 
-<p><img src="images/DD_sentiment.PNG" alt="Sumit"> </p>
+<h4>
+<a id="sentiment-over-time" class="anchor" href="#sentiment-over-time" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Over Time</h4>
+
+<p>We have been able to gather tweets only for a ceratin number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we will calculate and plot negative and positive sentiment over the last few days for all the brands.
+<img src="images/DD_sentiment.PNG" alt="Sumit"> </p>
 
 <p><img src="images/sb_sentiment.PNG" alt="Sumit"> </p>
 
@@ -102,6 +118,11 @@ From the map above,we can see the distribution of tweets across the country. We 
 <p><img src="images/panera_sentiment.PNG" alt="Sumit"> </p>
 
 <p><img src="images/subway_sentiment.PNG" alt="Sumit"> </p>
+
+<h4>
+<a id="comparing-the-distribution-of-scores" class="anchor" href="#comparing-the-distribution-of-scores" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Comparing the distribution of scores.</h4>
+
+<p>Next step would be to check the distribution of scores or sentiments. The difference between the positive and negative scores will give the general tweet sentiment or score. negative value will indicate negative sentiment and positive value will contain positive sentiment. </p>
 
 <p><img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/gh-pages/images/DD_sentiment_score.png" alt="Sumit1">  </p>
 
@@ -113,12 +134,14 @@ From the map above,we can see the distribution of tweets across the country. We 
 
 <p><img src="https://raw.githubusercontent.com/kavitadeodhar/TheDailyGrind/gh-pages/images/Subway_sentiment_score.png" alt="Sumit5">  </p>
 
+<p>The customer satisfaction (ACSI) index score is calculated as a weighted average of three survey questions that measure different facets of satisfaction with a product or service. ACSI researchers use proprietary software technology to estimate the weighting for each question.Source of this information is “<a href="http://www.theacsi.org%E2%80%9D">http://www.theacsi.org”</a>
+The last step is to compare the average tweet score(calculated for tweets in our dataset which are over a period of few days only) for all our brands with the ACSI index score which is determined as described above.
+As can be seen from the table with average tweet scores calculated by us and ACSI index determined through surveys and research are close. There is a good possibility that the tweet scores could be used to predict the satisfaction index. </p>
+
 <p><img src="/images/Regression.png" alt="Sumit6">   </p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<h4>
+<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h4>
 
 <p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
 
