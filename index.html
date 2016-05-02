@@ -38,13 +38,13 @@
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
         </div>
 
-        <h3>
-<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview.</h3>
+        <h2>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview.</h2>
 
 <p>Social Media is a daily diary for many people. It is now easy to let your voice be heard even if it is about a simple thing like our regular cup of coffee. There are many options and people tend to be loyal to their brands. The intent is to explore which brand do people favor based on their tweets. We would like to show how data could provide highly useful insights about the business. This should serve as a source of information and should provide valuable insights. By harnessing the power of data companies can provide better service to the customers. This could be used for better customer service, improving marketing strategy. It could also be used to see how a company could expand their presence. We will also try to see if a region favors one brand over the other. Also the intent is to explore whether momentary emotion conveyed via a tweet has any correlation on customer satisfaction index. We will compare CSAT data from ACSI(American customer satisfaction index) to the scores generated using our code.</p>
 
-<h3>
-<a id="objectives" class="anchor" href="#objectives" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Objectives</h3>
+<h2>
+<a id="objectives" class="anchor" href="#objectives" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Objectives</h2>
 
 <p>Through this project we would like to learn and accomplish following objectives:</p>
 
@@ -55,8 +55,8 @@
 <li>We would like to see if there is a trend (plot against time).</li>
 </ul>
 
-<h3>
-<a id="approach" class="anchor" href="#approach" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Approach</h3>
+<h2>
+<a id="approach" class="anchor" href="#approach" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Approach</h2>
 
 <p>We began our study by collecting data from following sources:</p>
 
@@ -67,11 +67,11 @@
 We then performed the data scraping tasks. The tweets collected had emoticons. To get the right sentiment from these emojis we had to convert these emojis to correct text. The data was cleansed so that each tweet could impart the correct sentiment. Once the data was cleansed we performed a series of exploratory data analysis to understand the general sentiment of a quick service restaurant. This analysis revealed a lot of facts about how a company is perceived by a customer. </li>
 </ul>
 
-<h3>
-<a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h3>
+<h2>
+<a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h2>
 
-<h4>
-<a id="plotting-data-on-us-map" class="anchor" href="#plotting-data-on-us-map" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plotting data on US map</h4>
+<h3>
+<a id="plotting-data-on-us-map" class="anchor" href="#plotting-data-on-us-map" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plotting data on US map</h3>
 
 <p>As the first part of our analysis,we are going to map all the tweets based on the geo code on US map. This is an attempt to see which brand is popular in which region. </p>
 
@@ -80,13 +80,13 @@ From the map above,we can see the distribution of tweets across the country. We 
 
 <p>Next we proceed with cleaning the data before calculating the score for every tweet.This includes removing special characters, punctuations, words like https, https.  </p>
 
-<h4>
-<a id="calculating-tweet-scores-for-all-brands" class="anchor" href="#calculating-tweet-scores-for-all-brands" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Calculating tweet scores for all brands.</h4>
+<h3>
+<a id="calculating-tweet-scores-for-all-brands" class="anchor" href="#calculating-tweet-scores-for-all-brands" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Calculating tweet scores for all brands.</h3>
 
 <p>We will use the nrc sentiment categories.The get_nrc_sentiment implements Saif Mohammad’s NRC Emotion lexicon. According to Mohammad, “the NRC emotion lexicon is a list of words and their associations with eight emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive)” (See <a href="http://www.purl.org/net/NRCemotionlexicon">http://www.purl.org/net/NRCemotionlexicon</a>). The get_nrc_sentiment function returns a data frame in which each row represents a sentence from the original file. Source of the above information is “<a href="https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html%E2%80%9D">https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html”</a></p>
 
-<h4>
-<a id="sentiment-per-brand" class="anchor" href="#sentiment-per-brand" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment per brand</h4>
+<h3>
+<a id="sentiment-per-brand" class="anchor" href="#sentiment-per-brand" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment per brand</h3>
 
 <p>Below is the plot of number of tweets per brand per category.It helps is understand the general emotion for each brand and also per category for every brand.
 <img src="images/Sentiment.PNG" alt="Sumit"> </p>
@@ -94,8 +94,9 @@ From the map above,we can see the distribution of tweets across the country. We 
 <p>The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?</p>
 
 <p>Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases. 
-The most used words will change through out the course of the day as more tweets are added from the new day and old ones removed.
-<img src="images/DD_wordmap.PNG" alt="Sumit"> </p>
+The most used words will change through out the course of the day as more tweets are added from the new day and old ones removed. </p>
+
+<p><img src="images/DD_wordmap.PNG" alt="Sumit"> </p>
 
 <p><img src="images/SB_wordmap.PNG" alt="Sumit"> </p>
 
@@ -105,8 +106,8 @@ The most used words will change through out the course of the day as more tweets
 
 <p><img src="images/subway_wordmap.PNG" alt="Sumit"> </p>
 
-<h4>
-<a id="sentiment-over-time" class="anchor" href="#sentiment-over-time" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Over Time</h4>
+<h3>
+<a id="sentiment-over-time" class="anchor" href="#sentiment-over-time" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Over Time</h3>
 
 <p>We have been able to gather tweets only for a ceratin number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we will calculate and plot negative and positive sentiment over the last few days for all the brands.
 <img src="images/DD_sentiment.PNG" alt="Sumit"> </p>
@@ -119,8 +120,8 @@ The most used words will change through out the course of the day as more tweets
 
 <p><img src="images/subway_sentiment.PNG" alt="Sumit"> </p>
 
-<h4>
-<a id="comparing-the-distribution-of-scores" class="anchor" href="#comparing-the-distribution-of-scores" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Comparing the distribution of scores.</h4>
+<h3>
+<a id="comparing-the-distribution-of-scores" class="anchor" href="#comparing-the-distribution-of-scores" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Comparing the distribution of scores.</h3>
 
 <p>Next step would be to check the distribution of scores or sentiments. The difference between the positive and negative scores will give the general tweet sentiment or score. negative value will indicate negative sentiment and positive value will contain positive sentiment. </p>
 
@@ -140,15 +141,8 @@ As can be seen from the table with average tweet scores calculated by us and ACS
 
 <p><img src="/images/Regression.png" alt="Sumit6">   </p>
 
-<h4>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h4>
-
-<p>You can <a href="https://help.github.com/articles/basic-writing-and-formatting-syntax/#mentioning-users-and-teams" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
+<p>The Daily Grind For CSCIE-107 maintained by kavitadeodhar/sumitgupta
+Published with GitHub Pages</p>
       </section>
 
     </div>
