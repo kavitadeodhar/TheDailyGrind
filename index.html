@@ -63,11 +63,14 @@
 <ul>
 <li>Tweets with hash tags of various quick service restaurants were collected using the twitterR package.</li>
 <li>ACSI data from ACSI website for following Quick Serve Restaurants like Dunkin, Starbucks, McDonalds, Panera and Subway.</li>
-<li>Emoticons conversion file.
-###Data Scraping
-We then performed the data scraping tasks on twitter data as well as ACSI data. The tweets collected had emoticons. To get the right sentiment from these emojis we had to convert these emojis to correct text. The data was cleansed so that each tweet could impart the correct sentiment. Once the data was cleansed we performed a series of exploratory data analysis to understand the general sentiment of a quick service restaurant. This analysis revealed a lot of facts about how a company is perceived by a customer. 
-The ACSI data for the brands we chose for this analysis was from the ACSI website.We read the specific table that contained this data for multiple years for these 5 brands.</li>
+<li>Emoticons conversion file.</li>
 </ul>
+
+<h3>
+<a id="data-scraping" class="anchor" href="#data-scraping" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Scraping</h3>
+
+<p>We then performed the data scraping tasks on twitter data as well as ACSI data. The tweets collected had emoticons. To get the right sentiment from these emojis we had to convert these emojis to correct text. The data was cleansed so that each tweet could impart the correct sentiment. Once the data was cleansed we performed a series of exploratory data analysis to understand the general sentiment of a quick service restaurant. This analysis revealed a lot of facts about how a company is perceived by a customer. 
+The ACSI data for the brands we chose for this analysis was from the ACSI website.We read the specific table that contained this data for multiple years for these 5 brands.</p>
 
 <h2>
 <a id="sentiment-analysis" class="anchor" href="#sentiment-analysis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Analysis</h2>
@@ -88,8 +91,9 @@ From the map above,we can see the distribution of tweets across the country. We 
 <h3>
 <a id="sentiment-per-brand" class="anchor" href="#sentiment-per-brand" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment per brand</h3>
 
-<p>Below is the plot of number of tweets per brand per category.It helps us understand the general emotion for each brand and also per category for every brand.
-<img src="images/Sentiment.PNG" alt="Sumit"> </p>
+<p>Below is the plot of number of tweets per brand per category.It helps us understand the general emotion for each brand and also per category for every brand.</p>
+
+<p><img src="images/Sentiment.PNG" alt="Sumit"> </p>
 
 <p>The categories of sentiments are fine, but what are those words that people associate with these brands? What is it that people are talking about in regards to the brands?Word cloud helps us do just that. Below are the word clouds for all the 5 of our brands. Note that the font is largest for the most popular word and decreases as the frequency decreases. The most used words may change through out the course of the day as more tweets are added from the new day and old ones removed. </p>
 
@@ -106,8 +110,9 @@ From the map above,we can see the distribution of tweets across the country. We 
 <h3>
 <a id="sentiment-over-time" class="anchor" href="#sentiment-over-time" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sentiment Over Time</h3>
 
-<p>We have been able to gather tweets only for a certain number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we calculated and plotted negative and positive sentiment over the last few days for all the brands.
-<img src="images/DD_sentiment.PNG" alt="Sumit"> </p>
+<p>We have been able to gather tweets only for a certain number of days due to restrictions on the Twitter API. So we cannot see the trend of sentiment over years or months. However we calculated and plotted negative and positive sentiment over the last few days for all the brands.</p>
+
+<p><img src="images/DD_sentiment.PNG" alt="Sumit"> </p>
 
 <p><img src="images/sb_sentiment.PNG" alt="Sumit"> </p>
 
